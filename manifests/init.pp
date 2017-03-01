@@ -1,7 +1,6 @@
 
 class cfssl (
-  Boolean               $wget_manage    = $cfssl::params::wget_manage,
-  Stdlib::Httpsurl      $download_url   = $cfssl::params::download_url,
+  Stdlib::Httpurl       $download_url   = $cfssl::params::download_url,
   Stdlib::Absolutepath  $download_dir   = $cfssl::params::download_dir,
   Stdlib::Absolutepath  $install_dir    = $cfssl::params::install_dir,
   Stdlib::Absolutepath  $conf_dir       = $cfssl::params::conf_dir,

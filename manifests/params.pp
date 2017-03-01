@@ -1,9 +1,11 @@
   # Class: cfssl::params
 #
 class cfssl::params {
-  $wget_manage      = true
   $download_url     = 'https://pkg.cfssl.org/R1.2'
   $download_dir     = '/opt/cfssl'
+  $use_proxy        = false
+  $proxy_server     = undef 
+  $proxy_type       = undef
   $install_dir      = '/usr/local/bin'
   $conf_dir         = '/etc/cfssl'
   $keys_dir         = "${conf_dir}/keys"
