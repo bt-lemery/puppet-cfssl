@@ -1,4 +1,5 @@
 require 'json'
+require 'openssl'
 require_relative '../../../puppet_x/cfssl/api.rb'
 
 Puppet::Type.type(:cfssl_cert).provide(:api, :parent => Cfssl::Api) do
@@ -21,12 +22,57 @@ Puppet::Type.type(:cfssl_cert).provide(:api, :parent => Cfssl::Api) do
   end
 
   def file_check
+    keyfile  = File.join(config_path, "#{resource[:cn]}-key.pem")
     certfile = File.join(config_path, "#{resource[:cn]}.pem")
-    return nil if !File.exist?(certfile)
+    unless (File.exist?(certfile)) && (File.exist?(keyfile))
+      return false
+    end
+    return true
+  end
+
+  def cert_check
+    certfile = File.join(config_path, "#{resource[:cn]}.pem")
+    if !(File.exist?(certfile))
+      return false
+    else
+      cert = OpenSSL::X509::Certificate.new(File.read(certfile))
+      subject = cert.subject.to_a.inject({}) { |k,v| k.merge!({v[0] => v[1]})}
+      if ("#{resource[:country]}" != "#{subject["C"]}") ||
+        ("#{resource[:state]}" != "#{subject["ST"]}") ||
+        ("#{resource[:locality]}" != "#{subject["L"]}") ||
+        ("#{resource[:organization]}" != "#{subject["O"]}") ||
+        ("#{resource[:ou]}" != "#{subject["OU"]}") ||
+        ("#{resource[:cn]}" != "#{subject["CN"]}")
+        return false
+      else
+        return true
+      end
+    end
+  end
+
+  def key_check
+    keyfile = File.join(config_path, "#{resource[:cn]}-key.pem")
+    if !(File.exist?(keyfile))
+      return false
+    else
+      key = OpenSSL::PKey.read(File.read(keyfile))
+      unless resource[:key_size].to_i == key.n.num_bits
+        return false
+      end
+      if (key.class.to_s != "OpenSSL::PKey::RSA") && (resource[:algo].to_s == "rsa")
+        return false
+      end
+      if (key.class.to_s == "OpenSSL::PKey::EC") && (resource[:algo].to_s == "ecdsa")
+        return false
+      end
+      return true
+    end
   end
 
   def exists?
-    file_check != nil
+    file_check
+    cert_check
+    key_check
   end
 
   def create
