@@ -7,7 +7,7 @@ module Cfssl
   # documentation goes here
   class Api < Puppet::Provider
 
-    def self.request(remote_ca, cn, api_root, action, payload = nil, path)
+    def self.request(remote_ca, api_root, action, payload = nil)
       begin
         Puppet.debug "After begin"
         uri = URI.parse("#{remote_ca}/#{api_root}/#{action}")
