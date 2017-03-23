@@ -70,7 +70,7 @@ Puppet::Type.type(:cfssl_cert).provide(:api, :parent => Cfssl::Api) do
   end
 
   def exists?
-    file_check
+    #file_check
     cert_check
     key_check
   end
