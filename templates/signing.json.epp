@@ -1,0 +1,63 @@
+{
+  "signing": {
+    "default": {
+      "expiry": "8760h"
+    },
+    "profiles": {
+      "ca": {
+<%- if $auth_manage == true { -%>
+<%- $auth_keys.each |$key| { -%>
+        <%- if $key["profile"] == "ca" { -%>
+        "auth_key": "<%= $key["name"] -%>",
+<%- } -%>
+<%- } -%>
+<%- } -%>
+        "expiry": "42720h",
+        "usages": [
+          "digital signature",
+          "cert sign",
+          "crl sign",
+          "signing",
+          "key encipherment"
+        ],
+        "is_ca": true
+      },
+      "server": {
+<%- if $auth_manage == true { -%>
+<%- $auth_keys.each |$key| { -%>
+        <%- if $key["profile"] == "server" { -%>
+        "auth_key": "<%= $key["name"] -%>",
+<%- } -%>
+<%- } -%>
+<%- } -%>
+        "expiry": "8760h",
+        "usages": [
+          "key encipherment",
+          "server auth"
+        ]
+      },
+      "client": {
+<%- if $auth_manage == true { -%>
+<%- $auth_keys.each |$key| { -%>
+        <%- if $key["profile"] == "client" { -%>
+        "auth_key": "<%= $key["name"] -%>",
+<%- } -%>
+<%- } -%>
+<%- } -%>
+        "expiry": "8760h",
+        "usages": [
+          "key encipherment",
+          "client auth"
+        ]
+      }
+    }
+  }<%- if $auth_manage == true { -%>,
+  "auth_keys": {
+    <%- $auth_keys.each |$index, $key| { -%>
+    "<%= $key["name"] -%>": {
+      "type": "<%= $key["type"] -%>",
+      "key": "<%= $key["key"] -%>"
+    }<% if $index < (size($auth_keys) - 1) { -%>,<% } %>
+    <%- } -%>
+  }<%- } %>
+}

@@ -22,8 +22,8 @@ class cfssl::config () inherits cfssl {
     }
     ->
     file { "${cfssl::conf_dir}/signing.json":
-      ensure => file,
-      source => "puppet:///modules/${module_name}/signing.json",
+      ensure  => file,
+      content => epp("${module_name}/signing.json.epp", { 'auth_manage' => $cfssl::auth_manage, 'auth_keys' => $cfssl::auth_keys }),
     }
     ->
     cfssl::sign { "${cfssl::intermediate_ca_id}-signed":

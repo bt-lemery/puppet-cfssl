@@ -33,6 +33,8 @@ class cfssl (
   Boolean               $firewall_manage  = $cfssl::params::firewall_manage,
   Array[String]         $allowed_networks = $cfssl::params::allowed_networks,
   Hash                  $requests         = hiera_hash('cfssl::requests', {}),
+  Boolean               $auth_manage      = $cfssl::params::auth_manage,
+  Array                 $auth_keys        = $cfssl::params::auth_keys,
 ) inherits cfssl::params {
 
   anchor { "${module_name}::begin": } ->

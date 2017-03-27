@@ -49,4 +49,7 @@ class cfssl::params {
   $service_user     = 'root'
   $firewall_manage  = false
   $allowed_networks = [ '127.0.0.0/8' ]
+
+  $auth_manage      = false
+  $auth_keys        = undef
 }
