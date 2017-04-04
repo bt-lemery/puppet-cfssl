@@ -19,7 +19,7 @@ Puppet::Type.type(:cfssl_cert).provide(:api, :parent => Cfssl::Api) do
   end
 
   def config_path
-    '/etc/cfssl'
+    File.dirname("#{resource[:name]}")
   end
 
   def authsign
