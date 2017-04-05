@@ -1,10 +1,17 @@
+require 'puppet/util'
+
 Puppet::Type.newtype(:cfssl_cert) do
   desc 'Manage cfssl generated private keys'
 
   ensurable
 
   newparam(:name, :namevar => true) do
-    desc 'name'
+    desc 'namevar, cert file fully qualified file path'
+    validate do |value|
+      unless Puppet::Util.absolute_path? value
+        raise ArgumentError, "cert file path must be absolute: #{value}"
+      end
+    end
   end
 
   newparam(:cn) do
