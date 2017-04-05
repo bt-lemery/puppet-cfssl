@@ -22,10 +22,6 @@ Puppet::Type.type(:cfssl_cert).provide(:api, :parent => Cfssl::Api) do
     File.dirname("#{resource[:name]}")
   end
 
-  def authsign
-    false
-  end
-
   def key_check
     keyfile = File.join(config_path, "#{resource[:cn]}-key.pem")
     if !(File.exist?(keyfile))
@@ -35,10 +31,10 @@ Puppet::Type.type(:cfssl_cert).provide(:api, :parent => Cfssl::Api) do
       unless resource[:key_size].to_i == key.n.num_bits
         return false
       end
-      if (key.class.to_s != "OpenSSL::PKey::RSA") && (resource[:algo].to_s == "rsa")
+      if (key.class.to_s != "OpenSSL::PKey::RSA") && (resource[:key_algo].to_s == "rsa")
         return false
       end
-      if (key.class.to_s == "OpenSSL::PKey::EC") && (resource[:algo].to_s == "ecdsa")
+      if (key.class.to_s == "OpenSSL::PKey::EC") && (resource[:key_algo].to_s == "ecdsa")
         return false
       end
       return true
@@ -71,7 +67,7 @@ Puppet::Type.type(:cfssl_cert).provide(:api, :parent => Cfssl::Api) do
   end
 
   def create
-    payload = { "CN" => resource[:cn], "key" => { "algo" => resource[:algo], "size" => resource[:key_size] }, "hosts" => resource[:hosts], "names" => [ { "C" => resource[:country], "ST" => resource[:state], "L" => resource[:locality], "O" => resource[:organization], "OU" => resource[:ou] } ] }
+    payload = { "CN" => resource[:cn], "key" => { "algo" => resource[:key_algo], "size" => resource[:key_size] }, "hosts" => resource[:hosts], "names" => [ { "C" => resource[:country], "ST" => resource[:state], "L" => resource[:locality], "O" => resource[:organization], "OU" => resource[:ou] } ] }
 
     json_response = request(resource[:remote], api_root, "newkey", payload)
 
@@ -86,14 +82,14 @@ Puppet::Type.type(:cfssl_cert).provide(:api, :parent => Cfssl::Api) do
     f.write(csr)
     f.close
 
-    if authsign == true
+    if resource[:authsign] == true
       key = File.open("#{config_path}/auth.key").read.chomp!
 
       hexkey = [ key ].pack 'H*'
 
       instance = OpenSSL::HMAC.new(hexkey, OpenSSL::Digest.new('sha256'))
       csr = File.open("#{config_path}/#{resource[:cn]}.csr").read
-      intermediate_payload = { "certificate_request" => "#{csr}", "profile" => "server" }.to_json
+      intermediate_payload = { "certificate_request" => "#{csr}", "profile" => "#{resource[:profile]}" }.to_json
       instance.update(intermediate_payload)
       token = Base64.encode64(instance.digest).chomp!
 
@@ -105,7 +101,7 @@ Puppet::Type.type(:cfssl_cert).provide(:api, :parent => Cfssl::Api) do
       json_response = request(resource[:remote], api_root, "authsign", payload)
 
     else
-      payload = { "certificate_request" => "#{csr}", "profile" => "server" }
+      payload = { "certificate_request" => "#{csr}", "profile" => "#{resource[:profile]}" }
 
       json_response = request(resource[:remote], api_root, "sign", payload)
     end

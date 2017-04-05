@@ -29,7 +29,7 @@ Puppet::Type.newtype(:cfssl_cert) do
     end
   end
 
-  newparam(:algo) do
+  newparam(:key_algo) do
     desc 'Cert algorithm'
     newvalues(:ecdsa, :rsa)
     defaultto :rsa
@@ -70,6 +70,16 @@ Puppet::Type.newtype(:cfssl_cert) do
 
   newparam(:remote) do
     desc 'remote CFSSL server'
+  end
+
+  newparam(:authsign) do
+    desc 'Should we hit the authsign endpoint'
+    defaultto :false
+  end
+
+  newparam(:profile) do
+    desc 'The profile to use when contacting the CA'
+    defaultto :server
   end
 
 end
