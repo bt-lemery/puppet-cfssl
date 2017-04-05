@@ -22,8 +22,20 @@ Puppet::Type.type(:cfssl_cert).provide(:api, :parent => Cfssl::Api) do
     File.dirname("#{resource[:name]}")
   end
 
+  def comp
+    File.basename("#{resource[:name]}")
+  end
+
+  def extn
+    File.extname("#{resource[:name]}")
+  end
+
+  def bare_name
+    File.basename "#{resource[:name]}", extn
+  end
+
   def key_check
-    keyfile = File.join(config_path, "#{resource[:cn]}-key.pem")
+    keyfile = config_path.to_s + "/" +bare_name.to_s + "-key" +extn.to_s
     if !(File.exist?(keyfile))
       return false
     else
@@ -42,7 +54,7 @@ Puppet::Type.type(:cfssl_cert).provide(:api, :parent => Cfssl::Api) do
   end
 
   def cert_check
-    certfile = File.join(config_path, "#{resource[:cn]}.pem")
+    certfile = "#{resource[:name]}"
     if !(File.exist?(certfile))
       return false
     else
@@ -74,11 +86,13 @@ Puppet::Type.type(:cfssl_cert).provide(:api, :parent => Cfssl::Api) do
     pkey = json_response["result"]["private_key"].to_s
     csr = json_response["result"]["certificate_request"].to_s
 
-    f = File.open("#{config_path}/#{resource[:cn]}-key.pem", "w")
+    keyfile = config_path.to_s + "/" +bare_name.to_s + "-key" +extn.to_s
+    f = File.open("#{keyfile}", "w")
     f.write(pkey)
     f.close
 
-    f = File.open("#{config_path}/#{resource[:cn]}.csr", "w")
+    csrfile = config_path.to_s + "/" +bare_name.to_s + ".csr"
+    f = File.open("#{csrfile}", "w")
     f.write(csr)
     f.close
 
@@ -88,7 +102,7 @@ Puppet::Type.type(:cfssl_cert).provide(:api, :parent => Cfssl::Api) do
       hexkey = [ key ].pack 'H*'
 
       instance = OpenSSL::HMAC.new(hexkey, OpenSSL::Digest.new('sha256'))
-      csr = File.open("#{config_path}/#{resource[:cn]}.csr").read
+      csr = File.open("#{csrfile}").read
       intermediate_payload = { "certificate_request" => "#{csr}", "profile" => "#{resource[:profile]}" }.to_json
       instance.update(intermediate_payload)
       token = Base64.encode64(instance.digest).chomp!
@@ -108,7 +122,8 @@ Puppet::Type.type(:cfssl_cert).provide(:api, :parent => Cfssl::Api) do
 
     cert = json_response["result"]["certificate"].to_s
 
-    f = File.open("#{config_path}/#{resource[:cn]}.pem", "w")
+    certfile = "#{resource[:name]}"
+    f = File.open("#{certfile}", "w")
     f.write(cert)
     f.close
 
