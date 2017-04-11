@@ -97,7 +97,7 @@ Puppet::Type.type(:cfssl_cert).provide(:api, :parent => Cfssl::Api) do
     f.close
 
     if resource[:authsign] == true
-      key = File.open("#{config_path}/auth.key").read.chomp!
+      key = resource[:authkey].to_s
 
       hexkey = [ key ].pack 'H*'
 

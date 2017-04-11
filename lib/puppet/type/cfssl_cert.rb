@@ -77,6 +77,10 @@ Puppet::Type.newtype(:cfssl_cert) do
     defaultto :false
   end
 
+  newparam(:authkey) do
+    desc 'The auth key to use when contacting the CA'
+  end
+
   newparam(:profile) do
     desc 'The profile to use when contacting the CA'
     defaultto :server
